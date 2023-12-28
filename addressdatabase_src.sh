@@ -120,33 +120,49 @@ function edit_operation()
     done
 }
 
-function search_operation()
-{
-	# TODO Ask user for a value to search
-	# 1. Value can be from any field of an entry.
-	# 2. One by one iterate through each line of database file and search for the entry
-	# 3. If available display all fiels for that entry
-	# 4. Prompt error incase not available
-	if grep $1 database.csv
-	then
-		return 0
-	else
-		return 1
-	fi
+function search_operation() {
+    local column_number="$1"
+    local pattern="$2"
+
+    # Search for the pattern in the specified column
+    search_result=$(awk -F',' -v col="$column_number" -v pat="$pattern" '$col == pat {print NR}' database.csv)
+
+    if [ -n "$search_result" ]; then
+        if [ $(echo "$search_result" | wc -l) -eq 1 ]; then
+            line_number=$(echo "$search_result")
+        else
+            echo "Multiple records found. Displaying details:"
+            awk -F',' -v col="$column_number" -v pat="$pattern" 'BEGIN {OFS=" : "} {if ($col == pat) print $0}' database.csv | cat -n
+            read -p "Select the user number to be displayed: " record_number
+
+            # Validate the user input against the available options
+            valid_input=$(awk -F',' -v col="$column_number" -v pat="$pattern" '{if ($col == pat) print NR}' database.csv | wc -l)
+            if [[ "$record_number" -le "$valid_input" ]]; then
+                line_number=$(awk -F',' -v col="$column_number" -v pat="$pattern" '{if ($col == pat) print NR}' database.csv | sed -n "${record_number}p")
+            else
+                echo -e "\e[1;31m Invalid selection! Please choose a valid number. \e[0m"
+                return 1
+            fi
+        fi
+
+        # Fetch the entire record based on the line number
+        data=$(awk -F',' -v line="$line_number" 'NR == line {print}' database.csv)
+        selected_user=$(echo "$data")
+        IFS=',' read -r name email tel mob place msg <<< "$selected_user"
+        clear
+        edit_operation "$line_number" "$name" "$email" "$tel" "$mob" "$place" "$msg"
+    else
+        echo -e "\e[1;31m No record found with the specified pattern in column $column_number \e[0m"
+    fi
 }
 
-function search_and_edit()
-{
-	# TODO UI for editing and searching 
-	# 1. Show realtime changes while editing
-	# 2. Call above functions respectively
+function search_and_edit() {
+    echo "My database Project"
+    echo "Please choose the below options:"
+    echo -n
 
-	echo "My database Project"
-	echo "Please choose the below options:"
-	echo -n
-
-	echo -e "${RED}Search${NC} / Edit by:"
-	name=""
+    # Initialize variables for fields
+    name=""
     email=""
     tel=""
     mob=""
@@ -160,64 +176,42 @@ function search_and_edit()
         echo "4: Mob no    : $mob"
         echo "5: Place     : $place"
         echo "6: Message   : $msg"
-		echo "7: All"
+        echo "7: All"
         echo -e "${RED}X${NC}: Exit"
 
         read -p "Please choose the field to be searched: " choice
 
         case $choice in
-             1) read -p "Please enter the name: " name
-                search_result=$(awk -F',' -v pattern="$name" '$1 == pattern {print NR}' database.csv)
-
-                if [ -n "$search_result" ]; then
-                    if [ $(echo "$search_result" | wc -l) -eq 1 ]; then
-                        line_number=$(echo "$search_result")
-                    else
-                        field_menu
-                        read -p "Select the user number to be displayed: " record_number
-                        line_number=$(echo "$search_result" | sed -n "${record_number}p")
-                    fi
-
-                    data=$(awk -F',' -v pattern="$name" '$1 == pattern' database.csv)
-                    selected_user=$(echo "$data")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$line_number" "$name" "$email" "$tel" "$mob" "$place" "$msg"
+            1) read -p "Please enter the name: " name
+                search_operation 1 "$name"
+                ;;
+            2) read -p "Please enter the email: " email
+                search_operation 2 "$email"
+                ;;
+            3) read -p "Please enter the telephone number: " tel
+                search_operation 3 "$tel"
+                ;;
+            4) read -p "Please enter the mobile number: " mob
+                search_operation 4 "$mob"
+                ;;
+            5) read -p "Please enter the place: " place
+                search_operation 5 "$place"
+                ;;
+            6) read -p "Please enter the message: " msg
+                search_operation 6 "$msg"
+                ;;
+            7)
+                echo "All"
+                # Perform the operation for all fields
+                if search_operation; then
+                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
                 else
                     echo -e "\e[1;31m There is no such record with this name \e[0m"
                 fi
                 ;;
-            2) read -p "Please enter the email: " email 
-				search_result=$(awk -F, '$2 == "'"$email"'"' database.csv | wc -l)
-                echo "$search_result"
-			   ;;
-            3) read -p "Please enter the telephone number: " tel 
-				search_result=$(awk -F, '$1 == "'"$tel"'"' database.csv | wc -l)
-
-              
-				;;
-            4) read -p "Please enter the mobile number: " mob 
-				search_result=$(awk -F, '$1 == "'"$mob"'"' database.csv | wc -l)
-               
-			   ;;
-            5) read -p "Please enter the place: " place 
-				search_result=$(awk -F, '$1 == "'"$place"'"' database.csv | wc -l)
-
-			   ;;
-            6) read -p "Please enter the message: " msg 
-				search_result=$(awk -F, '$1 == "'"$msg"'"' database.csv | wc -l)
-
-			   ;;
-			7)  echo "All"
-				if search_operation; then
-					edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-				else
-					echo -e "\e[1;31m There is no such record with this name \e[0m"
-				fi
-			   ;;
             [Xx])
                 clear
-				menu_header
+                menu_header
                 exit 0
                 ;;
             *)
@@ -226,6 +220,7 @@ function search_and_edit()
         esac
     done
 }
+
 
 function database_entry()
 {
