@@ -100,12 +100,11 @@ function edit_operation()
             5) read -p "Please enter the new place: " place ;;
             6) read -p "Please enter the new message: " msg ;;
             7)
-				new_data="$name,$email,$tel,$mob,$place,$msg"
-
-                # Perform the edit only on the selected line number
+				timestamp=$(awk -F',' -v line="$line_number" 'NR == line {print $7}' database.csv)
+                new_data="$name,$email,$tel,$mob,$place,$msg,$timestamp"
                 sed -i "${line_number}s/.*/$new_data/" database.csv
-
-                stdres="\e[1;32m Data updated! Record $line_number updated to $new_data at $(date) \e[0m"
+                echo -e "\e[1;32m Data updated! Record $line_number updated to $new_data at $(date) \e[0m"
+                stdres="Data updated! Record $line_number updated to $new_data at $(date)"
                 log
                 ;;
             [Xx])
@@ -236,7 +235,10 @@ function validate_entry()
 {
 	# TODO Inputs entered by user must be verified and validated as per fields
 	# 1. Names should have only alphabets
-	if [[ ! "$name" =~ ^[a-zA-Z]+$ || -z "$name" ]]
+	if [[ -z "$name" ]]
+	then
+		name=""
+    elif [[ ! "$name" =~ ^[a-zA-Z]+$ ]]
 	then
 		echo -e "\e[1;31m Reset your name! \e[0m"
 		return 1
@@ -245,27 +247,25 @@ function validate_entry()
 	# 2. Emails must have a @ symbols and ending with .<domain> Eg: user@mail.com
 	if [[ -z "$email" ]]
 	then
-		email=" "
-	else
-		if ! [[ "$email" =~ .*@.*\..* ]]; then
-			echo -e "\e[1;31m Invalid email format! Emails must have '@' and end with '.<domain>'. \e[0m"
-			return 1
-		fi
+		email=""
+	elif ! [[ "$email" =~ .*@.*\..* ]]; then
+        echo -e "\e[1;31m Invalid email format! Emails must have '@' and end with '.<domain>'. \e[0m"
+        return 1
 	fi
 
 	# 3. Mobile/Tel numbers must have 10 digits.
 	if [[ -z "$mob" ]]
 	then
-		mob=" "
+		mob=""
 	fi
 
 	if [[ -z "$tel" ]]
 	then
-		tel=" "
+		tel=""
 	fi
 
-	if [[ "$mob" != " " && ! "$mob" =~ ^[0-9]{9}$ ]] ||
-       [[ "$tel" != " " && ! "$tel" =~ ^[0-9]{9}$ ]]; then
+	if [[ "$mob" != "" && ! "$mob" =~ ^[0-9]{9}$ ]] ||
+       [[ "$tel" != "" && ! "$tel" =~ ^[0-9]{9}$ ]]; then
         echo -e "\e[1;31m Invalid telephone or mobile number! Must have 9 digits. \e[0m"
         return 1
     fi
@@ -273,17 +273,15 @@ function validate_entry()
 	# 4. Place must have only alphabets
 	if [[ -z "$place" ]]
 	then
-		place=" "
-	else
-		if ! [[ "$place" =~ ^[a-zA-Z]+$ ]]; then
-			echo -e "\e[1;31m Invalid place! Place must have only alphabets. \e[0m"
-			return 1
-		fi
+		place=""
+	elif ! [[ "$place" =~ ^[a-zA-Z]+$ ]]; then
+        echo -e "\e[1;31m Invalid place! Place must have only alphabets. \e[0m"
+        return 1
 	fi
 
 	if [[ -z "$msg" ]]
 	then
-		msg=" "
+		msg=""
 	fi
 
     return 0
