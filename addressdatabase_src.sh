@@ -11,10 +11,12 @@ NC='\033[0m'
 #TODO Define all timeout values here
 timeout=10
 
+echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS || Shell Database Project \e[0m"
+
 function log()
 {
    #TODO Write activities to log files along with timestamp, pass argument as a string
-   echo "$stdres" | tee -a database.log
+   echo -e "$stdres" | tee -a database.log
 }
 
 function menu_header() {
@@ -43,7 +45,8 @@ function menu_header() {
                     ;;
             esac
         else
-            echo "Timeout: No input received for 10 seconds. Exiting..."
+            echo -n
+            echo -e "\e[1;31m Timeout: No input received for 10 seconds. Exiting... \e[0m"
             exit 1
         fi
     done
@@ -63,18 +66,19 @@ function edit_operation()
 	# 2. As per user selection, prompt a message to enter respected value
 	# 3. Verify the user entry to field for matching. Eg mob number only 10 digits to enter
     # 4. Prompt error in case any mismatch of entered data and fields
+    local line_number="$1" 
 	echo "My database Project"
 	echo "Please choose the below options:"
 	echo -n
 
 	echo -e "Search / ${RED}Edit${NC} by:"
 
-    name="$1"
-    email="$2"
-    tel="$3"
-    mob="$4"
-    place="$5"
-    msg="$6"
+    name="$2"
+    email="$3"
+    tel="$4"
+    mob="$5"
+    place="$6"
+    msg="$7"
 
     while true; do
         echo "1: Name      : $name"
@@ -96,19 +100,21 @@ function edit_operation()
             5) read -p "Please enter the new place: " place ;;
             6) read -p "Please enter the new message: " msg ;;
             7)
-				old_data=$(grep "^$1," database.csv)
 				new_data="$name,$email,$tel,$mob,$place,$msg"
-                sed -i "s|$old_data|$new_data|g" database.csv
-				stdres="Data updated! $old_data got updated to $new_data at $(date)"
-				log
-				;;
+
+                # Perform the edit only on the selected line number
+                sed -i "${line_number}s/.*/$new_data/" database.csv
+
+                stdres="\e[1;32m Data updated! Record $line_number updated to $new_data at $(date) \e[0m"
+                log
+                ;;
             [Xx])
                 clear
                 menu_header
                 exit 0
                 ;;
             *)
-                echo "Invalid choice!"
+                echo -e "\e[1;31m Invalid choice! \e[0m"
                 ;;
         esac
     done
@@ -160,135 +166,53 @@ function search_and_edit()
         read -p "Please choose the field to be searched: " choice
 
         case $choice in
-            1) read -p "Please enter the name: " name
-				search_result=$(grep -c "$name" database.csv)
+             1) read -p "Please enter the name: " name
+                search_result=$(awk -F',' -v pattern="$name" '$1 == pattern {print NR}' database.csv)
 
-                if [ "$search_result" -eq 1 ]; then
-                    data=$(grep "$name" database.csv)
+                if [ -n "$search_result" ]; then
+                    if [ $(echo "$search_result" | wc -l) -eq 1 ]; then
+                        line_number=$(echo "$search_result")
+                    else
+                        field_menu
+                        read -p "Select the user number to be displayed: " record_number
+                        line_number=$(echo "$search_result" | sed -n "${record_number}p")
+                    fi
+
+                    data=$(awk -F',' -v pattern="$name" '$1 == pattern' database.csv)
                     selected_user=$(echo "$data")
                     IFS=',' read -r name email tel mob place msg <<< "$selected_user"
                     clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                elif [ "$search_result" -gt 1 ]; then
-                    data=$(grep "$name" database.csv)
-                    field_menu
-                    read -p "Select the user number to be displayed: " record_number
-                    selected_user=$(echo "$data" | sed -n "${record_number}p")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
+                    edit_operation "$line_number" "$name" "$email" "$tel" "$mob" "$place" "$msg"
                 else
-                    echo "There is no such record with this name"
+                    echo -e "\e[1;31m There is no such record with this name \e[0m"
                 fi
-			   ;;
+                ;;
             2) read -p "Please enter the email: " email 
-				search_result=$(grep -c "$email" database.csv)
-
-                if [ "$search_result" -eq 1 ]; then
-                    data=$(grep "$email" database.csv)
-                    selected_user=$(echo "$data")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                elif [ "$search_result" -gt 1 ]; then
-                    data=$(grep "$email" database.csv)
-                    field_menu
-                    read -p "Select the user number to be displayed: " record_number
-                    selected_user=$(echo "$data" | sed -n "${record_number}p")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                else
-                    echo "There is no such record with this name"
-                fi
+				search_result=$(awk -F, '$2 == "'"$email"'"' database.csv | wc -l)
+                echo "$search_result"
 			   ;;
             3) read -p "Please enter the telephone number: " tel 
-				search_result=$(grep -c "$tel" database.csv)
+				search_result=$(awk -F, '$1 == "'"$tel"'"' database.csv | wc -l)
 
-                if [ "$search_result" -eq 1 ]; then
-                    data=$(grep "$tel" database.csv)
-                    selected_user=$(echo "$data")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                elif [ "$search_result" -gt 1 ]; then
-                    data=$(grep "$tel" database.csv)
-                    field_menu
-                    read -p "Select the user number to be displayed: " record_number
-                    selected_user=$(echo "$data" | sed -n "${record_number}p")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                else
-                    echo "There is no such record with this name"
-                fi
+              
 				;;
             4) read -p "Please enter the mobile number: " mob 
-				search_result=$(grep -c "$mob" database.csv)
-                if [ "$search_result" -eq 1 ]; then
-                    data=$(grep "$mob" database.csv)
-                    selected_user=$(echo "$data")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                elif [ "$search_result" -gt 1 ]; then
-                    data=$(grep "$mob" database.csv)
-                    field_menu
-                    read -p "Select the user number to be displayed: " record_number
-                    selected_user=$(echo "$data" | sed -n "${record_number}p")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                else
-                    echo "There is no such record with this name"
-                fi
+				search_result=$(awk -F, '$1 == "'"$mob"'"' database.csv | wc -l)
+               
 			   ;;
             5) read -p "Please enter the place: " place 
-				search_result=$(grep -c "$place" database.csv)
+				search_result=$(awk -F, '$1 == "'"$place"'"' database.csv | wc -l)
 
-                if [ "$search_result" -eq 1 ]; then
-                    data=$(grep "$place" database.csv)
-                    selected_user=$(echo "$data")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                elif [ "$search_result" -gt 1 ]; then
-                    data=$(grep "$place" database.csv)
-                    field_menu
-                    read -p "Select the user number to be displayed: " record_number
-                    selected_user=$(echo "$data" | sed -n "${record_number}p")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                else
-                    echo "There is no such record with this name"
-                fi
 			   ;;
             6) read -p "Please enter the message: " msg 
-				search_result=$(grep -c "$msg" database.csv)
-                if [ "$search_result" -eq 1 ]; then
-                    data=$(grep "$msg" database.csv)
-                    selected_user=$(echo "$data")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                elif [ "$search_result" -gt 1 ]; then
-                    data=$(grep "$msg" database.csv)
-                    field_menu
-                    read -p "Select the user number to be displayed: " record_number
-                    selected_user=$(echo "$data" | sed -n "${record_number}p")
-                    IFS=',' read -r name email tel mob place msg <<< "$selected_user"
-                    clear
-                    edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
-                else
-                    echo "There is no such record with this name"
-                fi
+				search_result=$(awk -F, '$1 == "'"$msg"'"' database.csv | wc -l)
+
 			   ;;
 			7)  echo "All"
 				if search_operation; then
 					edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
 				else
-					echo "There is no such record with these information"
+					echo -e "\e[1;31m There is no such record with this name \e[0m"
 				fi
 			   ;;
             [Xx])
@@ -297,7 +221,7 @@ function search_and_edit()
                 exit 0
                 ;;
             *)
-                echo "Invalid choice!"
+                echo -e "\e[1;31m Invalid choice! \e[0m"
                 ;;
         esac
     done
@@ -308,6 +232,7 @@ function database_entry()
 	# TODO user inputs will be written to database file
 	# 1. If some fields are missing add consicutive ','. Eg: user,,,,,
 	echo "$name,$email,+213-$tel,+213-$mob,$place,$msg,$(date)" >> database.csv
+    echo -e "\e[1;32m Adding the user $name with success, $(date) \e[0m"
 	stdres="Adding the user $name with success, $(date)"
 	log
 }
@@ -318,7 +243,7 @@ function validate_entry()
 	# 1. Names should have only alphabets
 	if [[ ! "$name" =~ ^[a-zA-Z]+$ || -z "$name" ]]
 	then
-		echo "Reset your name"
+		echo -e "\e[1;31m Reset your name! \e[0m"
 		return 1
 	fi
 
@@ -328,7 +253,7 @@ function validate_entry()
 		email=" "
 	else
 		if ! [[ "$email" =~ .*@.*\..* ]]; then
-			echo "Invalid email format! Emails must have '@' and end with '.<domain>'."
+			echo -e "\e[1;31m Invalid email format! Emails must have '@' and end with '.<domain>'. \e[0m"
 			return 1
 		fi
 	fi
@@ -346,7 +271,7 @@ function validate_entry()
 
 	if [[ "$mob" != " " && ! "$mob" =~ ^[0-9]{9}$ ]] ||
        [[ "$tel" != " " && ! "$tel" =~ ^[0-9]{9}$ ]]; then
-        echo "Invalid telephone or mobile number! Must have 9 digits."
+        echo -e "\e[1;31m Invalid telephone or mobile number! Must have 9 digits. \e[0m"
         return 1
     fi
 
@@ -356,7 +281,7 @@ function validate_entry()
 		place=" "
 	else
 		if ! [[ "$place" =~ ^[a-zA-Z]+$ ]]; then
-			echo "Invalid place! Place must have only alphabets."
+			echo -e "\e[1;31m Invalid place! Place must have only alphabets. \e[0m"
 			return 1
 		fi
 	fi
@@ -408,11 +333,10 @@ function add_entry() {
             6) read -p "Please enter the message: " msg 
 			   ;;
 			7)  if validate_entry; then
-					echo "Validation successful! Adding entry to the database."
+					echo -e "\e[1;32m Validation successful! Adding entry to the database. \e[0m"
 					database_entry
 				else
-					echo "Validation failed! Please check your inputs."
-					echo "Resetting data..."
+                    echo -e "\e[1;31m Validation failed! Please check your inputs. Resetting data... \e[0m"
 					name=""
 					email=""
 					tel=""
@@ -427,7 +351,7 @@ function add_entry() {
                 exit 0
                 ;;
             *)
-                echo "Invalid choice!"
+                echo -e "\e[1;31m Invalid choice! \e[0m"
                 ;;
         esac
     done
@@ -453,7 +377,6 @@ do
         then
             touch database.csv
 			touch database.log
-            echo "name,email,tel_no,mob_no,place,message,timestamps" > database.csv
             echo "CSV file database.csv created."
 			break
 		else
