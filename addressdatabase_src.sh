@@ -1,15 +1,23 @@
 #!/bin/bash
 # The file names
 #TODO Define all file names used for this project
+DATABASE_CSV="database.csv"
+DATABASE_LOG="database.log"
+
 # The file paths
 #TODO Define all file paths here
+DATABASE_DIR="./ECEP/LinuxSystems/Projects"
+
 # The globals
+#TODO Define all global variables required
 RED='\033[0;31m'
 NC='\033[0m'
-#TODO Define all global variables required
+
 # Time out periods
 #TODO Define all timeout values here
 timeout=10
+
+
 
 echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS || Shell Database Project \e[0m"
 
@@ -357,32 +365,28 @@ function add_entry() {
 
 while [ 1 ]
 do
-	if [ ! -d ECEP/LinuxSystems/Projects ]
+	if [ ! -d $DATABASE_DIR ]
 	then
-		mkdir -p "$HOME/ECEP/LinuxSystems/Projects"
-		cd "$HOME/ECEP/LinuxSystems/Projects" || exit 1
+		mkdir -p "$DATABASE_DIR"
 	fi
 
+    cd "$DATABASE_DIR"
 	
 	while true
     do
-        if [ ! -f database.csv ]
+        if [ ! -f $DATABASE_CSV ]
         then
-            touch database.csv
-			touch database.log
+            touch "$DATABASE_CSV"
             echo "CSV file database.csv created."
-			break
-		else
-			break
         fi
-		if [ ! -f database.log ]
+
+		if [ ! -f $DATABASE_LOG ]
         then
-			touch database.log
+			touch "$DATABASE_LOG"
             echo "Log file database.log created."
-        	break
-		else
-			break
         fi
+
+        break
     done
 	
 	menu_header
