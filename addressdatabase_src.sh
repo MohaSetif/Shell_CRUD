@@ -242,7 +242,7 @@ function database_entry()
 	# TODO user inputs will be written to database file
 	# 1. If some fields are missing add consicutive ','. Eg: user,,,,,
     timestamp=$(date)
-	echo "$name,$email,+213-$tel,+213-$mob,$place,$msg,$timestamp" >> database.csv
+	echo "\"$name\",\"$email\",\"$tel\",\"$mob\",\"$place\",\"$msg\",\"$timestamp\"" >> database.csv
     echo -e "\e[1;32m Adding the user $name with success, $(date) \e[0m"
 	stdres="Adding the user $name with success, $(date)"
 	log
