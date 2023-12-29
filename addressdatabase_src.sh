@@ -24,7 +24,7 @@ echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS || Shell Database Project \e[
 function log()
 {
    #TODO Write activities to log files along with timestamp, pass argument as a string
-   echo -e "$stdres" | tee -a database.log
+   echo "$stdres" >> database.log
 }
 
 function menu_header() {
@@ -64,7 +64,15 @@ function field_menu()
 {
 	# TODO to print a selected user information 
 	# Name, Email, Tel no, Mob num, Address, Message
-	awk '{print "["NR"]", $0}' <<< "$data"
+	echo -e "\e[1;34m Selected User Information: \e[0m"
+    echo "==============================="
+    echo -e "\e[1m1: Name         : \e[0m$name"
+    echo -e "\e[1m2: Email        : \e[0m$email"
+    echo -e "\e[1m3: Tel no       : \e[0m$tel"
+    echo -e "\e[1m4: Mob no       : \e[0m$mob"
+    echo -e "\e[1m5: Place        : \e[0m$place"
+    echo -e "\e[1m6: Message      : \e[0m$msg"
+    echo -e "\e[1m7: Created_at   : \e[0m$timestamp"
 }
 
 function edit_operation()
@@ -87,15 +95,13 @@ function edit_operation()
     mob="$5"
     place="$6"
     msg="$7"
+    timestamp="$8"
 
     while true; do
-        echo "1: Name      : $name"
-        echo "2: Email     : $email"
-        echo "3: Tel no    : $tel"
-        echo "4: Mob no    : $mob"
-        echo "5: Place     : $place"
-        echo "6: Message   : $msg"
-        echo "7: Save"
+    
+        field_menu
+
+        echo "8: Save"
         echo -e "${RED}X${NC}: Exit"
 
         read -p "Please choose the field to be edited: " choice
@@ -107,12 +113,14 @@ function edit_operation()
             4) read -p "Please enter the new mobile number: " mob ;;
             5) read -p "Please enter the new place: " place ;;
             6) read -p "Please enter the new message: " msg ;;
-            7)
-				timestamp=$(awk -F',' -v line="$line_number" 'NR == line {print $7}' database.csv)
+            7) echo -e "\e[1;31m You can't change the timestamp! \e[0m"
+                ;;
+            8)
+                old_data="$2,$3,$4,$5,$6,$7,$8"
                 new_data="$name,$email,$tel,$mob,$place,$msg,$timestamp"
                 sed -i "${line_number}s/.*/$new_data/" database.csv
-                echo -e "\e[1;32m Data updated! Record $line_number updated to $new_data at $(date) \e[0m"
-                stdres="Data updated! Record $line_number updated to $new_data at $(date)"
+                echo -e "\e[1;32m Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date) \e[0m"
+                stdres="Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date)"
                 log
                 ;;
             [Xx])
@@ -155,9 +163,9 @@ function search_operation() {
         # Fetch the entire record based on the line number
         data=$(awk -F',' -v line="$line_number" 'NR == line {print}' database.csv)
         selected_user=$(echo "$data")
-        IFS=',' read -r name email tel mob place msg <<< "$selected_user"
+        IFS=',' read -r name email tel mob place msg timestamp <<< "$selected_user"
         clear
-        edit_operation "$line_number" "$name" "$email" "$tel" "$mob" "$place" "$msg"
+        edit_operation "$line_number" "$name" "$email" "$tel" "$mob" "$place" "$msg" "$timestamp"
     else
         echo -e "\e[1;31m No record found with the specified pattern in column $column_number \e[0m"
     fi
@@ -233,7 +241,8 @@ function database_entry()
 {
 	# TODO user inputs will be written to database file
 	# 1. If some fields are missing add consicutive ','. Eg: user,,,,,
-	echo "$name,$email,+213-$tel,+213-$mob,$place,$msg,$(date)" >> database.csv
+    timestamp=$(date)
+	echo "$name,$email,+213-$tel,+213-$mob,$place,$msg,$timestamp" >> database.csv
     echo -e "\e[1;32m Adding the user $name with success, $(date) \e[0m"
 	stdres="Adding the user $name with success, $(date)"
 	log
