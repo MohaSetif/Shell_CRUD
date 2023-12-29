@@ -17,8 +17,6 @@ NC='\033[0m'
 #TODO Define all timeout values here
 timeout=10
 
-
-
 echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS || Shell Database Project \e[0m"
 
 function log()
@@ -198,7 +196,7 @@ function search_and_edit() {
 
         case $choice in
             1) read -p "Please enter the name: " name
-                search_operation 1 "$name"
+                search_operation 1 "\"$name"\"
                 ;;
             2) read -p "Please enter the email: " email
                 search_operation 2 "$email"
@@ -242,7 +240,7 @@ function database_entry()
 	# TODO user inputs will be written to database file
 	# 1. If some fields are missing add consicutive ','. Eg: user,,,,,
     timestamp=$(date)
-	echo "\"$name\",\"$email\",\"$tel\",\"$mob\",\"$place\",\"$msg\",\"$timestamp\"" >> database.csv
+	echo "\"$name\",\"$email\",\"$tel\",\"+213-$mob\",\"$place\",\"$msg\",\"$timestamp\"" >> database.csv
     echo -e "\e[1;32m Adding the user $name with success, $(date) \e[0m"
 	stdres="Adding the user $name with success, $(date)"
 	log
@@ -255,7 +253,7 @@ function validate_entry()
 	if [[ -z "$name" ]]
 	then
 		name=""
-    elif [[ ! "$name" =~ ^[a-zA-Z]+$ ]]
+    elif [[ ! "$name" =~ ^[a-zA-Z[:space:]]+$ ]]
 	then
 		echo -e "\e[1;31m Reset your name! \e[0m"
 		return 1
@@ -270,32 +268,35 @@ function validate_entry()
         return 1
 	fi
 
-	# 3. Mobile/Tel numbers must have 10 digits.
-	if [[ -z "$mob" ]]
-	then
-		mob=""
-	fi
-
-	if [[ -z "$tel" ]]
+	# 3. Mobile numbers must have 9 digits / Telephone one must have 10 digits.
+    if [[ -z "$tel" ]]
 	then
 		tel=""
-	fi
-
-	if [[ "$mob" != "" && ! "$mob" =~ ^[0-9]{9}$ ]] ||
-       [[ "$tel" != "" && ! "$tel" =~ ^[0-9]{9}$ ]]; then
-        echo -e "\e[1;31m Invalid telephone or mobile number! Must have 9 digits. \e[0m"
+	elif [[ "$tel" != "" && ! "$tel" =~ ^[0-9]{10}$ ]]
+    then
+        echo -e "\e[1;31m Invalid telephone number! Must have 10 digits. \e[0m"
         return 1
     fi
 
-	# 4. Place must have only alphabets
+	if [[ -z "$mob" ]]
+	then
+		mob=""
+	elif [[ "$mob" != "" && ! "$mob" =~ ^[0-9]{9}$ ]]
+    then
+        echo -e "\e[1;31m Invalid mobile number! Must have 9 digits. \e[0m"
+        return 1
+    fi
+
+	# 4. Place must have only alphabets and spaces
 	if [[ -z "$place" ]]
 	then
 		place=""
-	elif ! [[ "$place" =~ ^[a-zA-Z]+$ ]]; then
+	elif ! [[ "$place" =~ ^[a-zA-Z[:space:]]+$ ]]; then
         echo -e "\e[1;31m Invalid place! Place must have only alphabets. \e[0m"
         return 1
 	fi
 
+    # 5. Any character allowed
 	if [[ -z "$msg" ]]
 	then
 		msg=""
@@ -331,29 +332,45 @@ function add_entry() {
 
         case $choice in
             1) read -p "Please enter the name: " name 
+                if validate_entry; then
+                    clear
+                    continue
+                fi
 			   ;;
-            2) read -p "Please enter the email: " email 
+            2) read -p "Please enter the email: " email
+                if validate_entry; then
+                    clear
+                    continue
+                fi
 			   ;;
-            3) read -p "Please enter the telephone number: " tel 
+            3) read -p "Please enter the telephone number (ex: 0563567899): " tel
+                if validate_entry; then
+                    clear
+                    continue
+                fi
 			   ;;
-            4) read -p "Please enter the mobile number: " mob 
+            4) read -p "Please enter the mobile number (ex: 563567899): " mob 
+                if validate_entry; then
+                    clear
+                    continue
+                fi
 			   ;;
             5) read -p "Please enter the place: " place 
+                if validate_entry; then
+                    clear
+                    continue
+                fi
 			   ;;
             6) read -p "Please enter the message: " msg 
+                if validate_entry; then
+                    clear
+                    continue
+                fi
 			   ;;
-			7)  if validate_entry; then
-					echo -e "\e[1;32m Validation successful! Adding entry to the database. \e[0m"
-					database_entry
-				else
-                    echo -e "\e[1;31m Validation failed! Please check your inputs. Resetting data... \e[0m"
-					name=""
-					email=""
-					tel=""
-					mob=""
-					place=""
-					msg=""
-				fi
+			7)  
+                clear
+                echo -e "\e[1;32m Validation successful! Adding entry to the database. \e[0m"
+                database_entry
 			   ;;
             [Xx])
                 clear
