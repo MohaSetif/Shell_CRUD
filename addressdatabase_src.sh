@@ -120,7 +120,7 @@ function edit_operation()
                     ;;
                 8)
                     old_data="$2,$3,$4,$5,$6,$7,$8"
-                    new_data="$name,$email,$tel,$mob,$place,$msg,$timestamp"
+                    new_data="$name|$email|$tel|$mob|$place|$msg|$timestamp"
                     sed -i "${line_number}s/.*/$new_data/" database.csv
                     echo -e "\e[1;32m Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date) \e[0m"
                     stdres="Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date)"
@@ -147,20 +147,20 @@ function search_operation() {
     local pattern="$2"
 
     # Search for the pattern in the specified column
-    search_result=$(awk -F',' -v col="$column_number" -v pat="$pattern" '$col == pat {print NR}' database.csv)
+    search_result=$(awk -F'|' -v col="$column_number" -v pat="$pattern" '$col == pat {print NR}' database.csv)
 
     if [ -n "$search_result" ]; then
         if [ $(echo "$search_result" | wc -l) -eq 1 ]; then
             line_number=$(echo "$search_result")
         else
             echo "Multiple records found. Displaying details:"
-            awk -F',' -v col="$column_number" -v pat="$pattern" 'BEGIN {OFS=" : "} {if ($col == pat) print $0}' database.csv | cat -n
+            awk -F'|' -v col="$column_number" -v pat="$pattern" 'BEGIN {OFS=" : "} {if ($col == pat) print $0}' database.csv | cat -n
             if read_input "Select the user number to be displayed: " record_number
             then
                 # Validate the user input against the available options
-                valid_input=$(awk -F',' -v col="$column_number" -v pat="$pattern" '{if ($col == pat) print NR}' database.csv | wc -l)
+                valid_input=$(awk -F'|' -v col="$column_number" -v pat="$pattern" '{if ($col == pat) print NR}' database.csv | wc -l)
                 if [[ "$record_number" -le "$valid_input" ]]; then
-                    line_number=$(awk -F',' -v col="$column_number" -v pat="$pattern" '{if ($col == pat) print NR}' database.csv | sed -n "${record_number}p")
+                    line_number=$(awk -F'|' -v col="$column_number" -v pat="$pattern" '{if ($col == pat) print NR}' database.csv | sed -n "${record_number}p")
                 else
                     echo -e "\e[1;31m Invalid selection! Please choose a valid number. \e[0m"
                     return 1
@@ -172,9 +172,9 @@ function search_operation() {
         fi
 
         # Fetch the entire record based on the line number
-        data=$(awk -F',' -v line="$line_number" 'NR == line {print}' database.csv)
+        data=$(awk -F'|' -v line="$line_number" 'NR == line {print}' database.csv)
         selected_user=$(echo "$data")
-        IFS=',' read -r name email tel mob place msg timestamp <<< "$selected_user"
+        IFS='|' read -r name email tel mob place msg timestamp <<< "$selected_user"
         clear
         edit_operation "$line_number" "$name" "$email" "$tel" "$mob" "$place" "$msg" "$timestamp"
     else
@@ -257,7 +257,7 @@ function database_entry()
 	# TODO user inputs will be written to database file
 	# 1. If some fields are missing add consicutive ','. Eg: user,,,,,
     timestamp=$(date)
-	echo "$name,$email,$tel,+213-$mob,$place,$msg,$timestamp" >> database.csv
+	echo "$name|$email|$tel|+213-$mob|$place|$msg|$timestamp" >> database.csv
     echo -e "\e[1;32m Adding the user $name with success, $(date) \e[0m"
 	stdres="Adding the user $name with success, $(date)"
 	log
