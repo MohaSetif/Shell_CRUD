@@ -25,6 +25,13 @@ function read_input() {
     read -t "$timeout" -p "$message" "$variable"
 }
 
+function print_header() {
+    clear
+    echo -e "\e[1m================================================="
+    echo -e "||             Welcome to My Database           ||"
+    echo -e "=================================================\e[0m"
+}
+
 function log()
 {
    #TODO Write activities to log files along with timestamp, pass argument as a string
@@ -34,6 +41,7 @@ function log()
 function menu_header() {
     while true
     do
+        print_header
         echo "1. Add Entry"
         echo "2. Search / Edit Entry"
         echo -e "${RED}X${NC}. Exit"
@@ -183,9 +191,12 @@ function search_operation() {
 }
 
 function search_and_edit() {
-    echo "My database Project"
+    clear
+    echo -e "\e[1;44m*******************************\e[0m"
+    echo -e "\e[1;44m*    Search / Edit Entry     *\e[0m"
+    echo -e "\e[1;44m*******************************\e[0m"
+    echo ""
     echo "Please choose the below options:"
-    echo -n
 
     # Initialize variables for fields
     name=""
@@ -313,7 +324,12 @@ function validate_entry() {
 }
 
 function add_entry() {
-	echo "My database Project"
+	clear
+    echo -e "\e[1;44m*****************************\e[0m"
+    echo -e "\e[1;44m*       Add New Entry       *\e[0m"
+    echo -e "\e[1;44m*****************************\e[0m"
+    echo ""
+    
 	echo "Please choose the below options:"
 	echo -n
     echo "Add New Entry Screen:"
