@@ -220,22 +220,22 @@ function search_and_edit() {
         then
             case $choice in
                 1) read_input "Please enter the name: " name
-                    search_operation 1 $name
+                    search_operation 1 "$name"
                     ;;
                 2) read_input "Please enter the email: " email
-                    search_operation 2 $email
+                    search_operation 2 "$email"
                     ;;
                 3) read_input "Please enter the telephone number: " tel
-                    search_operation 3 $tel
+                    search_operation 3 "$tel"
                     ;;
                 4) read_input "Please enter the mobile number: " mob
-                    search_operation 4 $mob
+                    search_operation 4 "$mob"
                     ;;
                 5) read_input "Please enter the place: " place
-                    search_operation 5 $place
+                    search_operation 5 "$place"
                     ;;
                 6) read_input "Please enter the message: " msg
-                    search_operation 6 $msg
+                    search_operation 6 "$msg"
                     ;;
                 7)
                     echo "All"
