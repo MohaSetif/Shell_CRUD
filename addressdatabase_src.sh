@@ -193,7 +193,7 @@ function search_operation() {
 function search_and_edit() {
     clear
     echo -e "\e[1;44m*******************************\e[0m"
-    echo -e "\e[1;44m*    Search / Edit Entry     *\e[0m"
+    echo -e "\e[1;44m*    Search / Edit Entry      *\e[0m"
     echo -e "\e[1;44m*******************************\e[0m"
     echo ""
     echo "Please choose the below options:"
