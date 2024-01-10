@@ -18,6 +18,7 @@ NC='\033[0m'
 timeout=10
 
 echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS || Shell Database Project \e[0m"
+echo ""
 
 function read_input() {
     #Setting a timeout each time the script wants a new insertion
@@ -27,10 +28,14 @@ function read_input() {
 }
 
 function print_header() {
-    clear
     echo -e "\e[1m================================================="
-    echo -e "||             Welcome to My Database           ||"
+    echo -e "||             Welcome to My Database          ||"
     echo -e "=================================================\e[0m"
+}
+
+function setError() {
+    clear
+    echo -e "\e[1;31m $1 \e[0m"
 }
 
 function log()
@@ -50,11 +55,11 @@ function menu_header() {
         if read_input "Please choose your option: " choice; then
             case $choice in
                 1)
-					clear
+                    clear
                     add_entry
                     ;;
                 2)
-					clear
+                    clear
                     search_and_edit
                     ;;
                 [Xx])
@@ -62,11 +67,11 @@ function menu_header() {
                     exit 0
                     ;;
                 *)
-                    echo "Invalid choice!"
+                    setError "Invalid choice!"
                     ;;
             esac
         else
-            echo -e "\e[1;31m Timeout: No input received for 10 seconds. Exiting... \e[0m"
+            setError "Timeout: No input received for 10 seconds. Exiting..."
             exit 1
         fi
     done
@@ -119,13 +124,33 @@ function edit_operation()
         if read_input "Please choose the field to be edited: " choice
         then
             case $choice in
-                1) read_input "Please enter the new name: " name ;;
-                2) read_input "Please enter the new email: " email ;;
-                3) read_input "Please enter the new telephone number: " tel ;;
-                4) read_input "Please enter the new mobile number: " mob ;;
-                5) read_input "Please enter the new place: " place ;;
-                6) read_input "Please enter the new message: " msg ;;
-                7) echo -e "\e[1;31m You can't change the timestamp! \e[0m"
+                1) 
+                    read_input "Please enter the new name: " name 
+                    clear
+                    ;;
+                2) 
+                    read_input "Please enter the new email: " email 
+                    clear
+                    ;;
+                3) 
+                    read_input "Please enter the new telephone number: " tel 
+                    clear
+                    ;;
+                4) 
+                    read_input "Please enter the new mobile number: " mob 
+                    clear
+                    ;;
+                5) 
+                    read_input "Please enter the new place: " place 
+                    clear
+                    ;;
+                6) 
+                    read_input "Please enter the new message: " msg 
+                    clear
+                    ;;
+                7)  
+                    
+                    setError "You can't change the timestamp!"
                     ;;
                 8)
                     #The old pre-modified data
@@ -134,6 +159,7 @@ function edit_operation()
                     new_data="$name|$email|$tel|$mob|$place|$msg|$timestamp"
                     #Replace the old data with the new one according to the corresponding line number from the table
                     sed -i "${line_number}s/.*/$new_data/" database.csv
+                    clear
                     echo -e "\e[1;32m Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date) \e[0m"
                     stdres="Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date)"
                     log
@@ -144,11 +170,12 @@ function edit_operation()
                     exit 0
                     ;;
                 *)
-                    echo -e "\e[1;31m Invalid choice! \e[0m"
+                    
+                    setError "Invalid choice!"
                     ;;
             esac
         else
-            echo -e "\e[1;31m Timeout: No input received for 10 seconds. Exiting... \e[0m"
+            setError "Timeout: No input received for 10 seconds. Exiting..."
             exit 1
         fi
     done
@@ -175,11 +202,11 @@ function search_operation() {
                 if [[ "$record_number" -le "$valid_input" ]]; then
                     line_number=$(awk -F'|' -v col="$column_number" -v pat="$pattern" '{if ($col == pat) print NR}' database.csv | sed -n "${record_number}p")
                 else
-                    echo -e "\e[1;31m Invalid selection! Please choose a valid number. \e[0m"
+                    setError "Invalid selection! Please choose a valid number."
                     return 1
                 fi
             else
-                echo -e "\e[1;31m Timeout: No input received for 10 seconds. Exiting... \e[0m"
+                setError "Timeout: No input received for 10 seconds. Exiting..."
                 exit 1
             fi
         fi
@@ -191,7 +218,8 @@ function search_operation() {
         clear
         edit_operation "$line_number" "$name" "$email" "$tel" "$mob" "$place" "$msg" "$timestamp"
     else
-        echo -e "\e[1;31m No record found with the specified pattern in column $column_number \e[0m"
+        clear
+        setError "No record found with the specified pattern in column $column_number"
     fi
 }
 
@@ -248,7 +276,7 @@ function search_and_edit() {
                     if search_operation; then
                         edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
                     else
-                        echo -e "\e[1;31m There is no such record with this name \e[0m"
+                        setError "There is no such record with this name"
                     fi
                     ;;
                 [Xx])
@@ -257,11 +285,11 @@ function search_and_edit() {
                     exit 0
                     ;;
                 *)
-                    echo -e "\e[1;31m Invalid choice! \e[0m"
+                    setError "Invalid choice!"
                     ;;
             esac
         else
-            echo -e "\e[1;31m Timeout: No input received for 10 seconds. Exiting... \e[0m"
+            setError "Timeout: No input received for 10 seconds. Exiting..."
             exit 1
         fi
     done
@@ -285,7 +313,7 @@ function validate_entry() {
     if [[ -z "$name" ]]; then
         name=""
     elif [[ ! "$name" =~ ^[a-zA-Z\ ]+$ ]]; then
-        echo -e "\e[1;31m Invalid name! It must contain only alphabets and spaces. \e[0m"
+        setError "Invalid name! It must contain only alphabets and spaces."
         return 1
     fi
 
@@ -293,7 +321,7 @@ function validate_entry() {
     if [[ -z "$email" ]]; then
         email=""
     elif ! [[ "$email" =~ .*@.*\..* ]]; then
-        echo -e "\e[1;31m Invalid email format! Emails must have '@' and end with '.<domain>'. \e[0m"
+        setError "Invalid email format! Emails must have '@' and end with '.<domain>'."
         return 1
     fi
 
@@ -301,14 +329,14 @@ function validate_entry() {
     if [[ -z "$tel" ]]; then
         tel=""
     elif [[ "$tel" != "" && ! "$tel" =~ ^[0-9]{10}$ ]]; then
-        echo -e "\e[1;31m Invalid telephone number! Must have exactly 10 digits. \e[0m"
+        setError "Invalid telephone number! Must have exactly 10 digits."
         return 1
     fi
 
     if [[ -z "$mob" ]]; then
         mob=""
     elif [[ "$mob" != "" && ! "$mob" =~ ^[0-9]{9}$ ]]; then
-        echo -e "\e[1;31m Invalid mobile number! Must have exactly 9 digits. \e[0m"
+        setError "Invalid mobile number! Must have exactly 9 digits."
         return 1
     fi
 
@@ -316,7 +344,7 @@ function validate_entry() {
     if [[ -z "$place" ]]; then
         place=""
     elif ! [[ "$place" =~ ^[a-zA-Z\ ]+$ ]]; then
-        echo -e "\e[1;31m Invalid place! Place must have only alphabets. \e[0m"
+        setError "Invalid place! Place must have only alphabets."
         return 1
     fi
 
@@ -405,11 +433,11 @@ function add_entry() {
                     exit 0
                     ;;
                 *)
-                    echo -e "\e[1;31m Invalid choice! \e[0m"
+                    setError "Invalid choice!"
                     ;;
             esac
         else
-            echo -e "\e[1;31m Timeout: No input received for 10 seconds. Exiting... \e[0m"
+            setError "Timeout: No input received for 10 seconds. Exiting..."
             exit 1
         fi
     done
