@@ -20,6 +20,7 @@ timeout=10
 echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS || Shell Database Project \e[0m"
 
 function read_input() {
+    #Setting a timeout each time the script wants a new insertion
     local message="$1"
     local variable="$2"
     read -t "$timeout" -p "$message" "$variable"
@@ -45,7 +46,7 @@ function menu_header() {
         echo "1. Add Entry"
         echo "2. Search / Edit Entry"
         echo -e "${RED}X${NC}. Exit"
-
+        #Giving the user the choice to navigate between the scenes
         if read_input "Please choose your option: " choice; then
             case $choice in
                 1)
@@ -127,8 +128,11 @@ function edit_operation()
                 7) echo -e "\e[1;31m You can't change the timestamp! \e[0m"
                     ;;
                 8)
+                    #The old pre-modified data
                     old_data="$2,$3,$4,$5,$6,$7,$8"
+                    #The post-modified data
                     new_data="$name|$email|$tel|$mob|$place|$msg|$timestamp"
+                    #Replace the old data with the new one according to the corresponding line number from the table
                     sed -i "${line_number}s/.*/$new_data/" database.csv
                     echo -e "\e[1;32m Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date) \e[0m"
                     stdres="Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date)"
@@ -417,6 +421,7 @@ function add_entry() {
 
 while [ 1 ]
 do
+    #Checks for the existence of the directory
 	if [ ! -d $DATABASE_DIR ]
 	then
 		mkdir -p "$DATABASE_DIR"
@@ -426,12 +431,14 @@ do
 	
 	while true
     do
+        #Checks for the existence of the csv file of the database
         if [ ! -f $DATABASE_CSV ]
         then
             touch "$DATABASE_CSV"
             echo "CSV file database.csv created."
         fi
 
+        #Checks for the existence of the csv file of the database
 		if [ ! -f $DATABASE_LOG ]
         then
 			touch "$DATABASE_LOG"
