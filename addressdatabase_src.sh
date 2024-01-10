@@ -21,7 +21,7 @@ echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS || Shell Database Project \e[
 echo ""
 
 function read_input() {
-    #Setting a timeout each time the script wants a new insertion
+    # Setting a timeout each time the script wants a new insertion
     local message="$1"
     local variable="$2"
     read -t "$timeout" -p "$message" "$variable"
@@ -51,7 +51,7 @@ function menu_header() {
         echo "1. Add Entry"
         echo "2. Search / Edit Entry"
         echo -e "${RED}X${NC}. Exit"
-        #Giving the user the choice to navigate between the scenes
+        # Giving the user the choice to navigate between the scenes
         if read_input "Please choose your option: " choice; then
             case $choice in
                 1)
@@ -153,11 +153,11 @@ function edit_operation()
                     setError "You can't change the timestamp!"
                     ;;
                 8)
-                    #The old pre-modified data
+                    # The old pre-modified data
                     old_data="$2,$3,$4,$5,$6,$7,$8"
-                    #The post-modified data
+                    # The post-modified data
                     new_data="$name|$email|$tel|$mob|$place|$msg|$timestamp"
-                    #Replace the old data with the new one according to the corresponding line number from the table
+                    # Replace the old data with the new one according to the corresponding line number from the table
                     sed -i "${line_number}s/.*/$new_data/" database.csv
                     clear
                     echo -e "\e[1;32m Data updated! Record $line_number: [$old_data] updated to [$new_data] at $(date) \e[0m"
@@ -272,11 +272,31 @@ function search_and_edit() {
                     ;;
                 7)
                     echo "All"
-                    # Perform the operation for all fields
-                    if search_operation; then
-                        edit_operation "$name" "$email" "$tel" "$mob" "$place" "$msg"
+                    # Display all records with line numbers
+                    awk -F'|' '{print $0}' database.csv | cat -n
+                    # Check if the database is empty
+                    if [ ! -s "database.csv" ]; then
+                        setError "The database is empty. No records to display."
                     else
-                        setError "There is no such record with this name"
+                        if read_input "Select the user number to be displayed: " record_number
+                        then
+                            # Validate the user input against the available options
+                            valid_input=$(awk -F'|' '{print NR}' database.csv | wc -l)
+                            if [[ "$record_number" -le "$valid_input" ]]; then
+                                line_number=$(awk -F'|' '{print NR}' database.csv | sed -n "${record_number}p")
+                                # Use awk to extract the record data of the selected user from the database.csv
+                                data=$(awk -F'|' -v line="$line_number" 'NR == line {print}' database.csv)
+                                selected_user=$(echo "$data")
+                                IFS='|' read -r name email tel mob place msg timestamp <<< "$selected_user"
+                                clear
+                                edit_operation "$line_number" "$name" "$email" "$tel" "$mob" "$place" "$msg" "$timestamp"
+                            else
+                                setError "Invalid selection! Please choose a valid number."
+                            fi
+                        else
+                            setError "Timeout: No input received for 10 seconds. Exiting..."
+                            exit 1
+                        fi
                     fi
                     ;;
                 [Xx])
