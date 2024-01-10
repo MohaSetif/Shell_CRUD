@@ -17,7 +17,7 @@ NC='\033[0m'
 #TODO Define all timeout values here
 timeout=10
 
-echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS || Shell Database Project \e[0m"
+echo -e "\e[1;42m Bourouba Mohamed El Khalil M1-CS 2023/2024 || Shell Database Project of The USA module conducted by DR. TOUMI Lyazid \e[0m"
 echo ""
 
 function read_input() {
