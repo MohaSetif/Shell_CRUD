@@ -166,6 +166,7 @@ function search_operation() {
             line_number=$(echo "$search_result")
         else
             echo "Multiple records found. Displaying details:"
+            # Display multiple records with line numbers
             awk -F'|' -v col="$column_number" -v pat="$pattern" 'BEGIN {OFS=" : "} {if ($col == pat) print $0}' database.csv | cat -n
             if read_input "Select the user number to be displayed: " record_number
             then
@@ -438,7 +439,7 @@ do
             echo "CSV file database.csv created."
         fi
 
-        #Checks for the existence of the csv file of the database
+        #Checks for the existence of the log file of the database
 		if [ ! -f $DATABASE_LOG ]
         then
 			touch "$DATABASE_LOG"
