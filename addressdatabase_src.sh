@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # The file names
 #TODO Define all file names used for this project
 DATABASE_CSV="database.csv"
